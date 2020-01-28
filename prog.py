@@ -31,13 +31,37 @@ def create_interaction_graph(gr,data,viewLabel):
             nodes_dict[data["ID_locus2"][i]] = node_locus2
         new_edge = gr.addEdge(nodes_dict[data["ID_locus1"][i]],nodes_dict[data["ID_locus2"][i]])
         gr.setEdgePropertiesValues(new_edge,{"Interaction":str(data["interaction_status"][i]),"Distance":str(data["distance"][i])})
-    return nodes_dict
+    return nodes_dict 
 
 def add_expression(gr,data,dico_nodes):
     for i in range(len(data["IDs"])):
         if data["IDs"][i] in dico_nodes.keys():
             gr.setNodePropertiesValues(dico_nodes[data["IDs"][i]],{"Expression":str(data["expression"][i])})
-    
+
+def read_symbols_csv(file):
+    f = open(file,"r")
+    dico = {}
+    for line in f.readlines():
+        line = line.split('\t')
+        dico[line[0]]=line[2:]
+    f.close()
+    return dico
+
+def voies_metaboliques(gr, viewLabel,data):
+    for file in ["KEGG.symbols.csv","REACTOME.symbols.csv"]:
+        voies_metabo = read_symbols_csv(WD+file)
+        for (name, genes) in voies_metabo.items():
+            intersection = list(set(genes) & set(data.keys()))
+            print(intersection,">>>>>>>", name)
+            if len(intersection) > 0 :
+                currentSubgraph = gr.addSubGraph(name)
+                for node_label in intersection:
+                    gr.addNode(data[node_label])
+                    for out_node in gr.getOutNodes(data[node_label]):
+                        if viewLabel[out_node] in intersection:
+                            currentSubgraph.addNode(out_node)
+                            currentSubgraph.addEdge(data[node_label], out_node)
+
 # The updateVisualization(centerViews = True) function can be called
 # during script execution to update the opened views
 # The pauseScript() function can be called to pause the script execution.
@@ -81,5 +105,11 @@ def main(gr):
     
     dico_nodes=create_interaction_graph(gr,interaction_data,viewLabel)
     add_expression(gr,expression_data,dico_nodes)
+    updateVisualization(centerViews = True)
+    
+    print("OK interactions")
+    
+    voies_metaboliques(gr,viewLabel,dico_nodes)
+    print("OK voies métabo")
     
   
