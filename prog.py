@@ -16,7 +16,7 @@ import csv
 
 ###### LES COMMENTAIRES : dire ce que fait la fonction, ce qu'elle prend en paramètre, ce qu'elle retourne
 
-WD="/net/cremi/elclaude/espaces/travail/M2/DEA/Bourqui/projet/"
+WD="/net/cremi/agruel/espaces/travail/M2/DEA/tulip/Visualisation_gene_expression_Tulip/"
 
 def create_interaction_graph(gr,data,viewLabel):
     nodes_dict={}
@@ -38,6 +38,11 @@ def add_expression(gr,data,dico_nodes):
         if data["IDs"][i] in dico_nodes.keys():
             gr.setNodePropertiesValues(dico_nodes[data["IDs"][i]],{"Expression":str(data["expression"][i])})
 
+def visu_algoFM(gr):
+    params = tlp.getDefaultPluginParameters("FM^3 (OGDF)",gr)
+    params["Unit Edge Length"] = gr["Distance"]
+    gr.applyLayoutAlgorithm("FM^3 (OGDF)", params)
+
 def read_symbols_csv(file):
     f = open(file,"r")
     dico = {}
@@ -52,15 +57,17 @@ def voies_metaboliques(gr, viewLabel,data):
         voies_metabo = read_symbols_csv(WD+file)
         for (name, genes) in voies_metabo.items():
             intersection = list(set(genes) & set(data.keys()))
-            print(intersection,">>>>>>>", name)
+            print(intersection,end="")
             if len(intersection) > 0 :
+                print(">>>>>>>", name)
                 currentSubgraph = gr.addSubGraph(name)
+                edges_to_add = []
                 for node_label in intersection:
-                    gr.addNode(data[node_label])
-                    for out_node in gr.getOutNodes(data[node_label]):
-                        if viewLabel[out_node] in intersection:
-                            currentSubgraph.addNode(out_node)
-                            currentSubgraph.addEdge(data[node_label], out_node)
+                    currentSubgraph.addNode(data[node_label])
+                    for edge in gr.getOutEdges(data[node_label]):
+                        if viewLabel[gr.target(edge)] in intersection:
+                            edges_to_add.append(edge)
+                currentSubgraph.addEdges(edges_to_add)
 
 # The updateVisualization(centerViews = True) function can be called
 # during script execution to update the opened views
@@ -106,6 +113,9 @@ def main(gr):
     dico_nodes=create_interaction_graph(gr,interaction_data,viewLabel)
     add_expression(gr,expression_data,dico_nodes)
     updateVisualization(centerViews = True)
+    
+    ### temporaire : applique automatique FM³
+    visu_algoFM(gr)
     
     print("OK interactions")
     
