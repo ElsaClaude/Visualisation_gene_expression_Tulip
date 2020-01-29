@@ -13,12 +13,25 @@
 from tulip import tlp
 import pandas as pd
 import csv
+import os
 
 ###### LES COMMENTAIRES : dire ce que fait la fonction, ce qu'elle prend en paramètre, ce qu'elle retourne
 
-WD="/net/cremi/agruel/espaces/travail/M2/DEA/tulip/Visualisation_gene_expression_Tulip/"
+#Amelie's path
+#WD=""
+
+#Elsa's path
+#WD=""
+
+#Salome's path
+#WD=""
+
+#Antoine's path
+WD="~/Dropbox/Master/M2S2/DEA/R_Bourqui/Visualisation_gene_expression_Tulip/"
+WDopen=os.getcwd()+"/../Dropbox/Master/M2S2/DEA/R_Bourqui/Visualisation_gene_expression_Tulip/"
 
 def create_interaction_graph(gr,data,viewLabel):
+    print("\nInteraction graph being constructed")
     nodes_dict={}
     for i in range(len(data["ID_locus1"])):
         if data["ID_locus1"][i] not in nodes_dict.keys():
@@ -34,6 +47,7 @@ def create_interaction_graph(gr,data,viewLabel):
     return nodes_dict 
 
 def add_expression(gr,data,dico_nodes):
+    print("\nAdding expression to graph")
     for i in range(len(data["IDs"])):
         if data["IDs"][i] in dico_nodes.keys():
             gr.setNodePropertiesValues(dico_nodes[data["IDs"][i]],{"Expression":str(data["expression"][i])})
@@ -44,7 +58,7 @@ def visu_algoFM(gr):
     gr.applyLayoutAlgorithm("FM^3 (OGDF)", params)
 
 def read_symbols_csv(file):
-    f = open(file,"r")
+    f = open(WD+file,"r")
     dico = {}
     for line in f.readlines():
         line = line.split('\t')
@@ -53,8 +67,9 @@ def read_symbols_csv(file):
     return dico
 
 def voies_metaboliques(gr, viewLabel,data):
+    print("\nCreation of subgraph for each pathway")
     for file in ["KEGG.symbols.csv","REACTOME.symbols.csv"]:
-        voies_metabo = read_symbols_csv(WD+file)
+        voies_metabo = read_symbols_csv(file)
         for (name, genes) in voies_metabo.items():
             intersection = list(set(genes) & set(data.keys()))
             print(intersection,end="")
@@ -106,10 +121,12 @@ def main(gr):
     viewTexture = gr['viewTexture']
     viewTgtAnchorShape = gr['viewTgtAnchorShape']
     viewTgtAnchorSize = gr['viewTgtAnchorSize']
-     
+    
+    #Reading of the interaction and expression files
     interaction_data=pd.read_csv(WD+"interactions_chromosome6.csv",sep="\t",header=0)
     expression_data=pd.read_csv(WD+"chromosome6_fragments_expressions.csv", sep="\t", header=0)
     
+    #Functions to create the graph
     dico_nodes=create_interaction_graph(gr,interaction_data,viewLabel)
     add_expression(gr,expression_data,dico_nodes)
     updateVisualization(centerViews = True)
@@ -117,9 +134,10 @@ def main(gr):
     ### temporaire : applique automatique FM³
     visu_algoFM(gr)
     
-    print("OK interactions")
+    print("\nGraph constructed successfully")
     
+    #Creating of subgraph for each pathway
     voies_metaboliques(gr,viewLabel,dico_nodes)
-    print("OK voies métabo")
+    print("\nMetabolism done")
     
   
