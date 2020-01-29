@@ -27,8 +27,9 @@ import os
 #WD=""
 
 #Antoine's path
-WD="~/Dropbox/Master/M2S2/DEA/R_Bourqui/Visualisation_gene_expression_Tulip/"
-WDopen=os.getcwd()+"/../Dropbox/Master/M2S2/DEA/R_Bourqui/Visualisation_gene_expression_Tulip/"
+#WD="~/Dropbox/Master/M2S2/DEA/R_Bourqui/Visualisation_gene_expression_Tulip/"
+#WDopen=os.getcwd()+"/../Dropbox/Master/M2S2/DEA/R_Bourqui/Visualisation_gene_expression_Tulip/"
+#WDopenDos=os.getcwd()+"\\..\\..\\Users\\antoi\\Dropbox\\Master\\M2S2\\DEA\\R_Bourqui\\Visualisation_gene_expression_Tulip\\"
 
 def create_interaction_graph(gr,data,viewLabel):
     print("\nInteraction graph being constructed")
@@ -58,13 +59,31 @@ def visu_algoFM(gr):
     gr.applyLayoutAlgorithm("FM^3 (OGDF)", params)
 
 def read_symbols_csv(file):
-    f = open(WD+file,"r")
+    f = open(WDopenDos+file,"r")
     dico = {}
     for line in f.readlines():
         line = line.split('\t')
         dico[line[0]]=line[2:]
     f.close()
     return dico
+
+def node_custom(gr,dico_nodes,size,color):
+  for node in dico_nodes.keys():
+    if gr.getNodePropertiesValues(dico_nodes[node])["Expression"] == "up":
+      color[dico_nodes[node]] = tlp.Color(0,255,0)
+      size[dico_nodes[node]] = tlp.Size(2,2,2)
+    elif gr.getNodePropertiesValues(dico_nodes[node])["Expression"] == "down":
+      color[dico_nodes[node]] = tlp.Color(255,0,0)
+      size[dico_nodes[node]] = tlp.Size(0.5,0.5,0.5)
+    elif gr.getNodePropertiesValues(dico_nodes[node])["Expression"] == "stable":
+      color[dico_nodes[node]] = tlp.Color(105,105,105)
+      size[dico_nodes[node]] = tlp.Size(1,1,1)
+    elif gr.getNodePropertiesValues(dico_nodes[node])["Expression"] == "intergenic":
+      color[dico_nodes[node]] = tlp.Color(200,200,200)
+      size[dico_nodes[node]] = tlp.Size(1,1,1)
+    elif gr.getNodePropertiesValues(dico_nodes[node])["Expression"] == "NA":
+      color[dico_nodes[node]] = tlp.Color(255,255,255)
+      size[dico_nodes[node]] = tlp.Size(1,1,1)
 
 def voies_metaboliques(gr, viewLabel,data):
     print("\nCreation of subgraph for each pathway")
@@ -137,7 +156,10 @@ def main(gr):
     print("\nGraph constructed successfully")
     
     #Creating of subgraph for each pathway
-    voies_metaboliques(gr,viewLabel,dico_nodes)
-    print("\nMetabolism done")
+#    voies_metaboliques(gr,viewLabel,dico_nodes)
+#    print("\nMetabolism done")
+
+    #Customization of the nodes regarding their properties
+#    node_custom(gr,dico_nodes,viewSize,viewColor)
     
   
