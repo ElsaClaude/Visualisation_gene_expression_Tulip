@@ -18,7 +18,7 @@ import os
 ###### LES COMMENTAIRES : dire ce que fait la fonction, ce qu'elle prend en paramètre, ce qu'elle retourne
 
 #Amelie's path
-WD="/net/cremi/agruel/espaces/travail/M2/DEA/tulip/Visualisation_gene_expression_Tulip/"
+#WD="/net/cremi/agruel/espaces/travail/M2/DEA/tulip/Visualisation_gene_expression_Tulip/"
 
 #Elsa's path
 #WD=""
@@ -85,7 +85,7 @@ def node_custom(gr,dico_nodes,size,color):
     elif gr.getNodePropertiesValues(dico_nodes[node])["Expression"] == "intergenic":
       color[dico_nodes[node]] = tlp.Color(200,200,200)
       size[dico_nodes[node]] = tlp.Size(1,1,1)
-    elif gr.getNodePropertiesValues(dico_nodes[node])["Expression"] == "NA":
+    elif gr.getNodePropertiesValues(dico_nodes[node])["Expression"] == "nan":
       color[dico_nodes[node]] = tlp.Color(255,255,255)
       size[dico_nodes[node]] = tlp.Size(1,1,1)
 
@@ -176,8 +176,8 @@ def main(gr):
 #    print("\nMetabolism done")
 
     #Customization of the nodes regarding their properties
-#    node_custom(gr,dico_nodes,viewSize,viewColor)
+    node_custom(gr,dico_nodes,viewSize,viewColor)
     
-    visu_Edges(gr, viewBorderColor,viewBorderWidth, viewColor)
+#    visu_Edges(gr, viewBorderColor,viewBorderWidth, viewColor)
     
   
