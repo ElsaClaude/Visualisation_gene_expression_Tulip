@@ -18,7 +18,7 @@ import os
 ###### LES COMMENTAIRES : dire ce que fait la fonction, ce qu'elle prend en paramètre, ce qu'elle retourne
 
 #Amelie's path
-#WD=""
+WD="/net/cremi/agruel/espaces/travail/M2/DEA/tulip/Visualisation_gene_expression_Tulip/"
 
 #Elsa's path
 #WD=""
@@ -27,8 +27,8 @@ import os
 #WD=""
 
 #Antoine's path
-WD="~/Dropbox/Master/M2S2/DEA/R_Bourqui/Visualisation_gene_expression_Tulip/"
-WDopen=os.getcwd()+"/../Dropbox/Master/M2S2/DEA/R_Bourqui/Visualisation_gene_expression_Tulip/"
+#WD="~/Dropbox/Master/M2S2/DEA/R_Bourqui/Visualisation_gene_expression_Tulip/"
+#WDopen=os.getcwd()+"/../Dropbox/Master/M2S2/DEA/R_Bourqui/Visualisation_gene_expression_Tulip/"
 
 def create_interaction_graph(gr,data,viewLabel):
     print("\nInteraction graph being constructed")
@@ -56,6 +56,9 @@ def visu_algoFM(gr):
     params = tlp.getDefaultPluginParameters("FM^3 (OGDF)",gr)
     params["Unit Edge Length"] = gr["Distance"]
     gr.applyLayoutAlgorithm("FM^3 (OGDF)", params)
+    
+    params = tlp.getDefaultPluginParameters("Perfect aspect ratio",gr)
+    gr.applyLayoutAlgorithm('Perfect aspect ratio', params)
 
 def read_symbols_csv(file):
     f = open(WD+file,"r")
@@ -72,9 +75,7 @@ def voies_metaboliques(gr, viewLabel,data):
         voies_metabo = read_symbols_csv(file)
         for (name, genes) in voies_metabo.items():
             intersection = list(set(genes) & set(data.keys()))
-            print(intersection,end="")
             if len(intersection) > 0 :
-                print(">>>>>>>", name)
                 currentSubgraph = gr.addSubGraph(name)
                 edges_to_add = []
                 for node_label in intersection:
@@ -83,6 +84,20 @@ def voies_metaboliques(gr, viewLabel,data):
                         if viewLabel[gr.target(edge)] in intersection:
                             edges_to_add.append(edge)
                 currentSubgraph.addEdges(edges_to_add)
+
+def visu_Edges(gr,viewBorderColor, viewBorderWidth, viewColor):
+    interaction = gr["Interaction"]
+    aspect = {
+         "gain": [tlp.Color.Blue,10],
+         "loss": [tlp.Color.Yellow,10],
+         "stable": [tlp.Color.Gray,0]
+    }
+    for edge in gr.getEdges():
+         viewBorderColor[edge] = aspect[interaction[edge]][0]
+         viewBorderWidth[edge] = aspect[interaction[edge]][1]
+         viewColor[edge] = aspect[interaction[edge]][0]
+     
+
 
 # The updateVisualization(centerViews = True) function can be called
 # during script execution to update the opened views
@@ -139,5 +154,7 @@ def main(gr):
     #Creating of subgraph for each pathway
     voies_metaboliques(gr,viewLabel,dico_nodes)
     print("\nMetabolism done")
+    
+    visu_Edges(gr, viewBorderColor,viewBorderWidth, viewColor)
     
   
