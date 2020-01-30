@@ -73,7 +73,7 @@ def read_symbols_csv(files_symbols):
       f.close()
     return dico
 
-def get_(gr, viewLabel,data):
+def get_subgraphs_pathways(gr, viewLabel,data):
     print("\nCreation of subgraph for each pathway")
     voies_metabo = read_symbols_csv(["KEGG.symbols.csv","REACTOME.symbols.csv"])
     for (name, genes) in voies_metabo.items():
@@ -104,7 +104,7 @@ def node_custom(gr,dico_nodes,size,color):
         size[dico_nodes[node]] = aspect[gr.getNodePropertiesValues(dico_nodes[node])["Expression"]][1]
 
 def visu_Edges(gr,viewBorderColor, viewBorderWidth, viewColor):
-    interaction = gr["Interaction"]voies_metaboliques
+    interaction = gr["Interaction"]
     aspect = {
       "gain": [tlp.Color.Blue,10],
       "loss": [tlp.Color.Yellow,10],
@@ -127,7 +127,7 @@ def get_statistics(gr, viewLabel):
       statistics["genes"][gr["Expression"][node]] += 1
     else : 
       statistics["genes"][gr["Expression"][node]] = 1
-    if viewLabel[node] in genes_in_pathways_from_file :
+    if viewLabel[node] in genes_in_pathways_from_file and gr["Expression"][node] in ["up","down"] :
       genes_in_pathways[viewLabel[node]] = []
       for (pathway, genes) in pathways_from_files.items():
         genes_in_pathways[viewLabel[node]].append(pathway)
@@ -195,7 +195,7 @@ def main(gr):
 #    print("\nGraph constructed successfully")
 #    
 #    #Creating of subgraph for each pathway
-#    voies_metaboliques(gr,viewLabel,dico_nodes)
+#    get_subgraphs_pathways(gr,viewLabel,dico_nodes)
 #    print("\nMetabolism done")
 
     #Customization of the nodes regarding their properties
