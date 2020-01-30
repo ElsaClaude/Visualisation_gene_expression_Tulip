@@ -98,6 +98,9 @@ def voies_metaboliques(gr, viewLabel,data):
                     for edge in gr.getOutEdges(data[node_label]):
                         if viewLabel[gr.target(edge)] in intersection:
                             edges_to_add.append(edge)
+                        elif gr.getEdgePropertiesValues(edge)["Interaction"] == "gain" or gr.getEdgePropertiesValues(edge)["Interaction"] == "loss":
+                            currentSubgraph.addNode(gr.target(edge))
+                            edges_to_add.append(edge)
                 currentSubgraph.addEdges(edges_to_add)
 
 def visu_Edges(gr,viewBorderColor, viewBorderWidth, viewColor):
@@ -167,12 +170,12 @@ def main(gr):
     print("\nGraph constructed successfully")
     
     #Creating of subgraph for each pathway
-#    voies_metaboliques(gr,viewLabel,dico_nodes)
-#    print("\nMetabolism done")
+    voies_metaboliques(gr,viewLabel,dico_nodes)
+    print("\nMetabolism done")
 
     #Customization of the nodes regarding their properties
     node_custom(gr,dico_nodes,viewSize,viewColor)
     
-#    visu_Edges(gr, viewBorderColor,viewBorderWidth, viewColor)
+    visu_Edges(gr, viewBorderColor,viewBorderWidth, viewColor)
     
   
