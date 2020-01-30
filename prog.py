@@ -27,6 +27,7 @@ import os
 #WD=""
 
 #Antoine's path
+#WD="/net/cremi/alaporte006/espaces/travail/DEA_Bourqui/Visualisation_gene_expression_Tulip/"
 #WD="~/Dropbox/Master/M2S2/DEA/R_Bourqui/Visualisation_gene_expression_Tulip/"
 #WDopen=os.getcwd()+"/../Dropbox/Master/M2S2/DEA/R_Bourqui/Visualisation_gene_expression_Tulip/"
 #WDopenDos=os.getcwd()+"\\..\\..\\Users\\antoi\\Dropbox\\Master\\M2S2\\DEA\\R_Bourqui\\Visualisation_gene_expression_Tulip\\"
@@ -72,22 +73,16 @@ def read_symbols_csv(file):
     return dico
 
 def node_custom(gr,dico_nodes,size,color):
-  for node in dico_nodes.keys():
-    if gr.getNodePropertiesValues(dico_nodes[node])["Expression"] == "up":
-      color[dico_nodes[node]] = tlp.Color(0,255,0)
-      size[dico_nodes[node]] = tlp.Size(2,2,2)
-    elif gr.getNodePropertiesValues(dico_nodes[node])["Expression"] == "down":
-      color[dico_nodes[node]] = tlp.Color(255,0,0)
-      size[dico_nodes[node]] = tlp.Size(0.5,0.5,0.5)
-    elif gr.getNodePropertiesValues(dico_nodes[node])["Expression"] == "stable":
-      color[dico_nodes[node]] = tlp.Color(105,105,105)
-      size[dico_nodes[node]] = tlp.Size(1,1,1)
-    elif gr.getNodePropertiesValues(dico_nodes[node])["Expression"] == "intergenic":
-      color[dico_nodes[node]] = tlp.Color(200,200,200)
-      size[dico_nodes[node]] = tlp.Size(1,1,1)
-    elif gr.getNodePropertiesValues(dico_nodes[node])["Expression"] == "nan":
-      color[dico_nodes[node]] = tlp.Color(255,255,255)
-      size[dico_nodes[node]] = tlp.Size(1,1,1)
+    aspect = {
+        "up": [tlp.Color(0,255,0),tlp.Size(2,2,2)],
+        "down": [tlp.Color(255,0,0),tlp.Size(0.5,0.5,0.5)],
+        "stable": [tlp.Color(105,105,105),tlp.Size(1,1,1)],
+        "intergenic": [tlp.Color(200,200,200),tlp.Size(1,1,1)],
+        "nan": [tlp.Color(255,255,255),tlp.Size(1,1,1)]
+    }
+    for node in dico_nodes.keys():
+        color[dico_nodes[node]] = aspect[gr.getNodePropertiesValues(dico_nodes[node])["Expression"]][0]
+        size[dico_nodes[node]] = aspect[gr.getNodePropertiesValues(dico_nodes[node])["Expression"]][1]
 
 def voies_metaboliques(gr, viewLabel,data):
     print("\nCreation of subgraph for each pathway")
