@@ -18,7 +18,7 @@ import os
 ###### LES COMMENTAIRES : dire ce que fait la fonction, ce qu'elle prend en paramètre, ce qu'elle retourne
 
 #Amelie's path
-#WD="/net/cremi/agruel/espaces/travail/M2/DEA/tulip/Visualisation_gene_expression_Tulip/"
+#WD="/home/amelie/Documents/master/M2/DEA/Tulip/Visualisation_gene_expression_Tulip/"
 
 #Elsa's path
 #WD=""
@@ -63,14 +63,33 @@ def visu_algoFM(gr):
     params = tlp.getDefaultPluginParameters("Perfect aspect ratio",gr)
     gr.applyLayoutAlgorithm('Perfect aspect ratio', params)
 
-def read_symbols_csv(file):
-    f = open(WD+file,"r")
+def read_symbols_csv(files_symbols):
     dico = {}
-    for line in f.readlines():
-        line = line.split('\t')
-        dico[line[0]]=line[2:]
-    f.close()
+    for file in files_symbols:
+      f = open(WD+file,"r")
+      for line in f.readlines():
+          line = line.split('\t')
+          dico[line[0]]=line[2:]
+      f.close()
     return dico
+
+def get_(gr, viewLabel,data):
+    print("\nCreation of subgraph for each pathway")
+    voies_metabo = read_symbols_csv(["KEGG.symbols.csv","REACTOME.symbols.csv"])
+    for (name, genes) in voies_metabo.items():
+      intersection = list(set(genes) & set(data.keys()))
+      if len(intersection) > 0 :
+        currentSubgraph = gr.addSubGraph(name)
+        edges_to_add = []
+        for node_label in intersection:
+          currentSubgraph.addNode(data[node_label])
+          for edge in gr.getOutEdges(data[node_label]):
+            if viewLabel[gr.target(edge)] in intersection:
+              edges_to_add.append(edge)
+            elif gr.getEdgePropertiesValues(edge)["Interaction"] == "gain" or gr.getEdgePropertiesValues(edge)["Interaction"] == "loss":
+              currentSubgraph.addNode(gr.target(edge))
+              edges_to_add.append(edge)
+        currentSubgraph.addEdges(edges_to_add)
 
 def node_custom(gr,dico_nodes,size,color):
     aspect = {
@@ -84,38 +103,44 @@ def node_custom(gr,dico_nodes,size,color):
         color[dico_nodes[node]] = aspect[gr.getNodePropertiesValues(dico_nodes[node])["Expression"]][0]
         size[dico_nodes[node]] = aspect[gr.getNodePropertiesValues(dico_nodes[node])["Expression"]][1]
 
-def voies_metaboliques(gr, viewLabel,data):
-    print("\nCreation of subgraph for each pathway")
-    for file in ["KEGG.symbols.csv","REACTOME.symbols.csv"]:
-        voies_metabo = read_symbols_csv(file)
-        for (name, genes) in voies_metabo.items():
-            intersection = list(set(genes) & set(data.keys()))
-            if len(intersection) > 0 :
-                currentSubgraph = gr.addSubGraph(name)
-                edges_to_add = []
-                for node_label in intersection:
-                    currentSubgraph.addNode(data[node_label])
-                    for edge in gr.getOutEdges(data[node_label]):
-                        if viewLabel[gr.target(edge)] in intersection:
-                            edges_to_add.append(edge)
-                        elif gr.getEdgePropertiesValues(edge)["Interaction"] == "gain" or gr.getEdgePropertiesValues(edge)["Interaction"] == "loss":
-                            currentSubgraph.addNode(gr.target(edge))
-                            edges_to_add.append(edge)
-                currentSubgraph.addEdges(edges_to_add)
-
 def visu_Edges(gr,viewBorderColor, viewBorderWidth, viewColor):
-    interaction = gr["Interaction"]
+    interaction = gr["Interaction"]voies_metaboliques
     aspect = {
-         "gain": [tlp.Color.Blue,10],
-         "loss": [tlp.Color.Yellow,10],
-         "stable": [tlp.Color.Gray,0]
+      "gain": [tlp.Color.Blue,10],
+      "loss": [tlp.Color.Yellow,10],
+      "stable": [tlp.Color.Gray,0]
     }
     for edge in gr.getEdges():
-         viewBorderColor[edge] = aspect[interaction[edge]][0]
-         viewBorderWidth[edge] = aspect[interaction[edge]][1]
-         viewColor[edge] = aspect[interaction[edge]][0]
-     
+      viewBorderColor[edge] = aspect[interaction[edge]][0]
+      viewBorderWidth[edge] = aspect[interaction[edge]][1]
+      viewColor[edge] = aspect[interaction[edge]][0]
 
+def get_statistics(gr, viewLabel):
+  statistics = {"genes": {}, "interactions": {}}
+  genes_in_pathways = {}
+  pathways_from_files = read_symbols_csv(["KEGG.symbols.csv", "REACTOME.symbols.csv"])
+  genes_in_pathways_from_file = list(set(sum(list(pathways_from_files.values()), [])))
+  print("read csv OK")
+  i = 1
+  for node in gr.getNodes(): 
+    if gr["Expression"][node] in statistics["genes"].keys():
+      statistics["genes"][gr["Expression"][node]] += 1
+    else : 
+      statistics["genes"][gr["Expression"][node]] = 1
+    if viewLabel[node] in genes_in_pathways_from_file :
+      genes_in_pathways[viewLabel[node]] = []
+      for (pathway, genes) in pathways_from_files.items():
+        genes_in_pathways[viewLabel[node]].append(pathway)
+    print(i, gr.numberOfNodes())
+    i+=1
+  print("nodes OK")
+  for edge in gr.getEdges():
+    if gr["Interaction"][edge] in statistics["interactions"].keys():
+      statistics["interactions"][gr["Interaction"][edge]] += 1
+    else : 
+      statistics["interactions"][gr["Interaction"][edge]] = 1
+  print("edges OK")
+  return statistics, genes_in_pathways
 
 # The updateVisualization(centerViews = True) function can be called
 # during script execution to update the opened views
@@ -130,7 +155,7 @@ def visu_Edges(gr,viewBorderColor, viewBorderWidth, viewColor):
 # to run the script on the current gr
 
 def main(gr):
-    gr.clear()
+#    gr.clear()
     
     viewBorderColor = gr['viewBorderColor']
     viewBorderWidth = gr['viewBorderWidth']
@@ -156,26 +181,29 @@ def main(gr):
     viewTgtAnchorSize = gr['viewTgtAnchorSize']
     
     #Reading of the interaction and expression files
-    interaction_data=pd.read_csv(WD+"interactions_chromosome6.csv",sep="\t",header=0)
-    expression_data=pd.read_csv(WD+"chromosome6_fragments_expressions.csv", sep="\t", header=0)
-    
-    #Functions to create the graph
-    dico_nodes=create_interaction_graph(gr,interaction_data,viewLabel)
-    add_expression(gr,expression_data,dico_nodes)
-    updateVisualization(centerViews = True)
-    
-    ### temporaire : applique automatique FM³
-    visu_algoFM(gr)
-    
-    print("\nGraph constructed successfully")
-    
-    #Creating of subgraph for each pathway
-    voies_metaboliques(gr,viewLabel,dico_nodes)
-    print("\nMetabolism done")
+#    interaction_data=pd.read_csv(WD+"interactions_chromosome6.csv",sep="\t",header=0)
+#    expression_data=pd.read_csv(WD+"chromosome6_fragments_expressions.csv", sep="\t", header=0)
+#    
+#    #Functions to create the graph
+#    dico_nodes=create_interaction_graph(gr,interaction_data,viewLabel)
+#    add_expression(gr,expression_data,dico_nodes)
+#    updateVisualization(centerViews = True)
+#    
+#    ### temporaire : applique automatique FM³
+#    visu_algoFM(gr)
+#    
+#    print("\nGraph constructed successfully")
+#    
+#    #Creating of subgraph for each pathway
+#    voies_metaboliques(gr,viewLabel,dico_nodes)
+#    print("\nMetabolism done")
 
     #Customization of the nodes regarding their properties
-    node_custom(gr,dico_nodes,viewSize,viewColor)
+#    node_custom(gr,dico_nodes,viewSize,viewColor)
     
-    visu_Edges(gr, viewBorderColor,viewBorderWidth, viewColor)
+#    visu_Edges(gr, viewBorderColor,viewBorderWidth, viewColor)
+    statistics, genes_in_pathways = get_statistics(gr, viewLabel)
+    print(statistics)
+    print(genes_in_pathways)
+    print("OK")
     
-  
