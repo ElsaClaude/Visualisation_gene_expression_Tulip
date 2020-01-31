@@ -119,11 +119,12 @@ def get_regulators(gr,viewLabel):
   for node in gr.getNodes():
     if gr["Expression"][node] in ["up","down"] and list(set([gr["Interaction"][e] for e in list(gr.getInOutEdges(node))])) == ["stable"]:
       for neighbor_node in gr.getInOutNodes(node):
-        for second_degree_edge in gr.getInOutEdges(neighbor_node):
-          second_degree_neighbor_node = [n for n in gr.ends(second_degree_edge) if n != neighbor_node][0] 
-          if gr["Expression"][second_degree_neighbor_node] in ["up","down"] and gr["Interaction"][second_degree_edge] != "stable":
-            print(viewLabel[second_degree_neighbor_node], "influence", viewLabel[node],"via",viewLabel[neighbor_node])
-            gr.setNodePropertiesValues(neighbor_node,{"Regulators": str(viewLabel[node])+" par "+str(viewLabel[second_degree_neighbor_node])})
+        if gr["Expression"][neighbor_node] in ["up","down"]:
+          for second_degree_edge in gr.getInOutEdges(neighbor_node):
+            second_degree_neighbor_node = [n for n in gr.ends(second_degree_edge) if n != neighbor_node][0] 
+            if gr["Expression"][second_degree_neighbor_node] in ["up","down"] and gr["Interaction"][second_degree_edge] != "stable":
+              print(viewLabel[second_degree_neighbor_node], "influence", viewLabel[node],"via",viewLabel[neighbor_node])
+              gr.setNodePropertiesValues(neighbor_node,{"Regulators": str(viewLabel[node])+" par "+str(viewLabel[second_degree_neighbor_node])})
 
 def get_statistics(gr, viewLabel):
   statistics = {"genes": {}, "interactions": {}}
@@ -223,4 +224,9 @@ def main(gr):
     
     get_regulators(gr,viewLabel)
     print("OK")
+    
+    for edge in gr.getEdges():
+      labels = [viewLabel[n] for n in gr.ends(edge)]
+      if "MCM3" in labels and ("IL17A" in labels or "EFHC1" in labels):
+        viewColor[edge] = tlp.Color.Blue
     
