@@ -119,7 +119,7 @@ def get_regulators(gr,viewLabel):
   for node in gr.getNodes():
     if gr["Expression"][node] in ["up","down"] and list(set([gr["Interaction"][e] for e in list(gr.getInOutEdges(node))])) == ["stable"]:
       for neighbor_node in gr.getInOutNodes(node):
-        if gr["Expression"][neighbor_node] in ["up","down"]:
+        if gr["Expression"][neighbor_node] in ["up","down","intergenic"]:
           for second_degree_edge in gr.getInOutEdges(neighbor_node):
             second_degree_neighbor_node = [n for n in gr.ends(second_degree_edge) if n != neighbor_node][0] 
             if gr["Expression"][second_degree_neighbor_node] in ["up","down"] and gr["Interaction"][second_degree_edge] != "stable":
