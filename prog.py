@@ -18,7 +18,7 @@ import os
 ###### LES COMMENTAIRES : dire ce que fait la fonction, ce qu'elle prend en paramètre, ce qu'elle retourne
 
 #Amelie's path
-#WD="/home/amelie/Documents/master/M2/DEA/Tulip/Visualisation_gene_expression_Tulip/"
+WD="/home/amelie/Documents/master/M2/DEA/Tulip/Visualisation_gene_expression_Tulip/"
 
 #Elsa's path
 #WD=""
@@ -130,7 +130,8 @@ def get_statistics(gr, viewLabel):
     if viewLabel[node] in genes_in_pathways_from_file and gr["Expression"][node] in ["up","down"] :
       genes_in_pathways[viewLabel[node]] = []
       for (pathway, genes) in pathways_from_files.items():
-        genes_in_pathways[viewLabel[node]].append(pathway)
+        if viewLabel[node] in genes :
+          genes_in_pathways[viewLabel[node]].append(pathway)
     print(i, gr.numberOfNodes())
     i+=1
   print("nodes OK")
