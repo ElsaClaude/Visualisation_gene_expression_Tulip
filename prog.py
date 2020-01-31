@@ -33,9 +33,10 @@ import os
 #WDopenDos=os.getcwd()+"\\..\\..\\Users\\antoi\\Dropbox\\Master\\M2S2\\DEA\\R_Bourqui\\Visualisation_gene_expression_Tulip\\"
 
 
-def create_interaction_graph(gr,data,viewLabel):
+def create_interaction_graph(gr,viewLabel):
+    data = pd.read_csv(WD+"interactions_chromosome6.csv",sep="\t",header=0)
     print("\nInteraction graph being constructed")
-    nodes_dict={}
+    nodes_dict = {}
     for i in range(len(data["ID_locus1"])):
         if data["ID_locus1"][i] not in nodes_dict.keys():
             node_locus1 = gr.addNode()
@@ -49,7 +50,8 @@ def create_interaction_graph(gr,data,viewLabel):
         gr.setEdgePropertiesValues(new_edge,{"Interaction":str(data["interaction_status"][i]),"Distance":str(data["distance"][i])})
     return nodes_dict
 
-def add_expression(gr,data,dico_nodes):
+def add_expression(gr,dico_nodes):
+    data = pd.read_csv(WD+"chromosome6_fragments_expressions.csv", sep="\t", header=0)
     print("\nAdding expression to graph")
     for i in range(len(data["IDs"])):
         if data["IDs"][i] in dico_nodes.keys():
@@ -73,7 +75,7 @@ def read_symbols_csv(files_symbols):
       f.close()
     return dico
 
-def get_subgraphs_pathways(gr, viewLabel,data):
+def set_subgraphs_pathways(gr, viewLabel,data):
     print("\nCreation of subgraph for each pathway")
     voies_metabo = read_symbols_csv(["KEGG.symbols.csv","REACTOME.symbols.csv"])
     for (name, genes) in voies_metabo.items():
@@ -135,7 +137,7 @@ def create_interest_subgraph(gr):
                 edges_to_add.append(edge)
     interest.addEdges(edges_to_add)
 
-def get_regulators(gr,viewLabel):
+def set_secondary_regulators(gr,viewLabel):
   for node in gr.getNodes():
     if gr["Expression"][node] in ["up","down"] and list(set([gr["Interaction"][e] for e in list(gr.getInOutEdges(node))])) == ["stable"]:
       for neighbor_node in gr.getInOutNodes(node):
@@ -145,6 +147,7 @@ def get_regulators(gr,viewLabel):
             if gr["Expression"][second_degree_neighbor_node] in ["up","down"] and gr["Interaction"][second_degree_edge] != "stable":
               print(viewLabel[second_degree_neighbor_node], "influence", viewLabel[node],"via",viewLabel[neighbor_node])
               gr.setNodePropertiesValues(neighbor_node,{"Regulators": str(viewLabel[node])+" par "+str(viewLabel[second_degree_neighbor_node])})
+  return second_degree_reg
 
 def get_statistics(gr, viewLabel):
   statistics = {"genes": {}, "interactions": {}}
@@ -216,34 +219,31 @@ def main(gr):
     viewTgtAnchorShape = gr['viewTgtAnchorShape']
     viewTgtAnchorSize = gr['viewTgtAnchorSize']
     
-    #Reading of the interaction and expression files
-    interaction_data=pd.read_csv(WD+"interactions_chromosome6.csv",sep="\t",header=0)
-    expression_data=pd.read_csv(WD+"chromosome6_fragments_expressions.csv", sep="\t", header=0)
-#    
-    #Functions to create the graph
-    dico_nodes=create_interaction_graph(gr,interaction_data,viewLabel)
-    add_expression(gr,expression_data,dico_nodes)
+    ###Functions to create the graph
+    dico_nodes=create_interaction_graph(gr,viewLabel)
+    add_expression(gr,dico_nodes)
+    second_degree_reg = set_secondary_regulators(gr,viewLabel)
     updateVisualization(centerViews = True)
-    #Customization of the nodes and edge regarding their properties
-    visu_node_edge(gr,dico_nodes,viewSize,viewColor,viewBorderColor,viewBorderWidth)
-#    
-#    ### temporaire : applique automatique FM³
-    visu_algoFM(gr)
-#    
     print("\nGraph constructed successfully")
-#    
-#    #Creating of subgraph for each pathway
-#    get_subgraphs_pathways(gr,viewLabel,dico_nodes)
-#    print("\nMetabolism done")
+    
+    ###Customization of the nodes and edge regarding their properties
+    visu_node_edge(gr,dico_nodes,viewSize,viewColor,viewBorderColor,viewBorderWidth)
+    print("\nCustomization done")
+
+    ###temporaire : applique automatique FM³
+    visu_algoFM(gr)
+    
+    ###Creation of subgraphs for each pathway
+#    set_subgraphs_pathways(gr,viewLabel,dico_nodes)
+#    print("\nSubgraphs of pathways created")
     
     create_interest_subgraph(gr)
+    print("\nInterest subgraph created")
     
 #    statistics, genes_in_pathways = get_statistics(gr, viewLabel)
 #    print(statistics)
 #    print(genes_in_pathways)
-    
-#    get_regulators(gr,viewLabel)
-#    print("OK")
+
     
 #    for edge in gr.getEdges():
 #      labels = [viewLabel[n] for n in gr.ends(edge)]
