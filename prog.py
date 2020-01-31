@@ -115,18 +115,31 @@ def visu_Edges(gr,viewBorderColor, viewBorderWidth, viewColor):
       viewBorderWidth[edge] = aspect[interaction[edge]][1]
       viewColor[edge] = aspect[interaction[edge]][0]
 
+def get_regulators(gr,viewLabel):
+  for node in gr.getNodes():
+    if gr["Expression"][node] in ["up","down"] and list(set([gr["Interaction"][e] for e in list(gr.getInOutEdges(node))])) == ["stable"]:
+      for neighbor_node in gr.getInOutNodes(node):
+        for second_degree_edge in gr.getInOutEdges(neighbor_node):
+          second_degree_neighbor_node = [n for n in gr.ends(second_degree_edge) if n != neighbor_node][0] 
+          if gr["Expression"][second_degree_neighbor_node] in ["up","down"] and gr["Interaction"][second_degree_edge] != "stable":
+            print(viewLabel[second_degree_neighbor_node], "influence", viewLabel[node],"via",viewLabel[neighbor_node])
+            gr.setNodePropertiesValues(neighbor_node,{"Regulators": str(viewLabel[node])+" par "+str(viewLabel[second_degree_neighbor_node])})
+
 def get_statistics(gr, viewLabel):
   statistics = {"genes": {}, "interactions": {}}
   genes_in_pathways = {}
+  indirect_regulators = {}
   pathways_from_files = read_symbols_csv(["KEGG.symbols.csv", "REACTOME.symbols.csv"])
   genes_in_pathways_from_file = list(set(sum(list(pathways_from_files.values()), [])))
   print("read csv OK")
   i = 1
+  
   for node in gr.getNodes(): 
     if gr["Expression"][node] in statistics["genes"].keys():
       statistics["genes"][gr["Expression"][node]] += 1
     else : 
       statistics["genes"][gr["Expression"][node]] = 1
+      
     if viewLabel[node] in genes_in_pathways_from_file and gr["Expression"][node] in ["up","down"] :
       genes_in_pathways[viewLabel[node]] = []
       for (pathway, genes) in pathways_from_files.items():
@@ -134,6 +147,7 @@ def get_statistics(gr, viewLabel):
           genes_in_pathways[viewLabel[node]].append(pathway)
     print(i, gr.numberOfNodes())
     i+=1
+    
   print("nodes OK")
   for edge in gr.getEdges():
     if gr["Interaction"][edge] in statistics["interactions"].keys():
@@ -203,8 +217,10 @@ def main(gr):
 #    node_custom(gr,dico_nodes,viewSize,viewColor)
     
 #    visu_Edges(gr, viewBorderColor,viewBorderWidth, viewColor)
-    statistics, genes_in_pathways = get_statistics(gr, viewLabel)
-    print(statistics)
-    print(genes_in_pathways)
+#    statistics, genes_in_pathways = get_statistics(gr, viewLabel)
+#    print(statistics)
+#    print(genes_in_pathways)
+    
+    get_regulators(gr,viewLabel)
     print("OK")
     
