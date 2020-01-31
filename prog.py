@@ -18,7 +18,7 @@ import os
 ###### LES COMMENTAIRES : dire ce que fait la fonction, ce qu'elle prend en paramètre, ce qu'elle retourne
 
 #Amelie's path
-WD="/home/amelie/Documents/master/M2/DEA/Tulip/Visualisation_gene_expression_Tulip/"
+#WD="/home/amelie/Documents/master/M2/DEA/Tulip/Visualisation_gene_expression_Tulip/"
 
 #Elsa's path
 #WD=""
@@ -47,7 +47,7 @@ def create_interaction_graph(gr,data,viewLabel):
             nodes_dict[data["ID_locus2"][i]] = node_locus2
         new_edge = gr.addEdge(nodes_dict[data["ID_locus1"][i]],nodes_dict[data["ID_locus2"][i]])
         gr.setEdgePropertiesValues(new_edge,{"Interaction":str(data["interaction_status"][i]),"Distance":str(data["distance"][i])})
-    return nodes_dict 
+    return nodes_dict
 
 def add_expression(gr,data,dico_nodes):
     print("\nAdding expression to graph")
@@ -94,7 +94,7 @@ def get_subgraphs_pathways(gr, viewLabel,data):
 def node_custom(gr,dico_nodes,size,color):
     aspect = {
         "up": [tlp.Color(0,255,0),tlp.Size(2,2,2)],
-        "down": [tlp.Color(255,0,0),tlp.Size(0.5,0.5,0.5)],
+        "down": [tlp.Color(255,0,0),tlp.Size(2,2,2)],
         "stable": [tlp.Color(105,105,105),tlp.Size(1,1,1)],
         "intergenic": [tlp.Color(200,200,200),tlp.Size(1,1,1)],
         "nan": [tlp.Color(255,255,255),tlp.Size(1,1,1)]
@@ -114,6 +114,28 @@ def visu_Edges(gr,viewBorderColor, viewBorderWidth, viewColor):
       viewBorderColor[edge] = aspect[interaction[edge]][0]
       viewBorderWidth[edge] = aspect[interaction[edge]][1]
       viewColor[edge] = aspect[interaction[edge]][0]
+
+def create_interest_subgraph(gr):
+    interest = gr.addSubGraph("Graph of interest")
+    nodes_to_add = []
+    edges_to_add = []
+    for node in gr.getNodes():
+        if gr["Expression"][node] in ["up","down"]:
+            nodes_to_add.append(node)
+        elif gr["Expression"][node] == "intergenic":
+            count = 0
+            for neighbor in gr.getInOutNodes(node):
+                if gr["Expression"][neighbor] in ["up","down"]:
+                    count+=1
+            if count >=2:
+                nodes_to_add.append(node)
+    interest.addNodes(nodes_to_add)
+    allSubNodes = interest.nodes()
+    for edge in gr.getEdges():
+        if gr["Interaction"][edge] in ["gain","loss","stable"]:
+            if gr.target(edge) in allSubNodes and gr.source(edge) in allSubNodes:
+                edges_to_add.append(edge)
+    interest.addEdges(edges_to_add)
 
 def get_regulators(gr,viewLabel):
   for node in gr.getNodes():
@@ -171,7 +193,7 @@ def get_statistics(gr, viewLabel):
 # to run the script on the current gr
 
 def main(gr):
-#    gr.clear()
+    gr.clear()
     
     viewBorderColor = gr['viewBorderColor']
     viewBorderWidth = gr['viewBorderWidth']
@@ -197,36 +219,38 @@ def main(gr):
     viewTgtAnchorSize = gr['viewTgtAnchorSize']
     
     #Reading of the interaction and expression files
-#    interaction_data=pd.read_csv(WD+"interactions_chromosome6.csv",sep="\t",header=0)
-#    expression_data=pd.read_csv(WD+"chromosome6_fragments_expressions.csv", sep="\t", header=0)
+    interaction_data=pd.read_csv(WD+"interactions_chromosome6.csv",sep="\t",header=0)
+    expression_data=pd.read_csv(WD+"chromosome6_fragments_expressions.csv", sep="\t", header=0)
 #    
 #    #Functions to create the graph
-#    dico_nodes=create_interaction_graph(gr,interaction_data,viewLabel)
-#    add_expression(gr,expression_data,dico_nodes)
-#    updateVisualization(centerViews = True)
+    dico_nodes=create_interaction_graph(gr,interaction_data,viewLabel)
+    add_expression(gr,expression_data,dico_nodes)
+    updateVisualization(centerViews = True)
 #    
 #    ### temporaire : applique automatique FM³
-#    visu_algoFM(gr)
+    visu_algoFM(gr)
 #    
-#    print("\nGraph constructed successfully")
+    print("\nGraph constructed successfully")
 #    
 #    #Creating of subgraph for each pathway
 #    get_subgraphs_pathways(gr,viewLabel,dico_nodes)
 #    print("\nMetabolism done")
 
     #Customization of the nodes regarding their properties
-#    node_custom(gr,dico_nodes,viewSize,viewColor)
+    node_custom(gr,dico_nodes,viewSize,viewColor)
+    visu_Edges(gr, viewBorderColor,viewBorderWidth, viewColor)
     
-#    visu_Edges(gr, viewBorderColor,viewBorderWidth, viewColor)
+    create_interest_subgraph(gr)
+    
 #    statistics, genes_in_pathways = get_statistics(gr, viewLabel)
 #    print(statistics)
 #    print(genes_in_pathways)
     
-    get_regulators(gr,viewLabel)
-    print("OK")
+#    get_regulators(gr,viewLabel)
+#    print("OK")
     
-    for edge in gr.getEdges():
-      labels = [viewLabel[n] for n in gr.ends(edge)]
-      if "MCM3" in labels and ("IL17A" in labels or "EFHC1" in labels):
-        viewColor[edge] = tlp.Color.Blue
+#    for edge in gr.getEdges():
+#      labels = [viewLabel[n] for n in gr.ends(edge)]
+#      if "MCM3" in labels and ("IL17A" in labels or "EFHC1" in labels):
+#        viewColor[edge] = tlp.Color.Blue
     
