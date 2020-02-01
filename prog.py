@@ -18,7 +18,7 @@ import os
 ###### LES COMMENTAIRES : dire ce que fait la fonction, ce qu'elle prend en paramètre, ce qu'elle retourne
 
 #Amelie's path
-#WD="/home/amelie/Documents/master/M2/DEA/Tulip/Visualisation_gene_expression_Tulip/"
+WD="/home/amelie/Documents/master/M2/DEA/Tulip/Visualisation_gene_expression_Tulip/"
 
 #Elsa's path
 #WD=""
@@ -147,7 +147,6 @@ def set_secondary_regulators(gr,viewLabel):
             if gr["Expression"][second_degree_neighbor_node] in ["up","down"] and gr["Interaction"][second_degree_edge] != "stable":
               print(viewLabel[second_degree_neighbor_node], "influence", viewLabel[node],"via",viewLabel[neighbor_node])
               gr.setNodePropertiesValues(neighbor_node,{"Regulators": str(viewLabel[node])+" par "+str(viewLabel[second_degree_neighbor_node])})
-  return second_degree_reg
 
 def get_statistics(gr, viewLabel):
   statistics = {"genes": {}, "interactions": {}}
@@ -179,6 +178,20 @@ def get_statistics(gr, viewLabel):
     else : 
       statistics["interactions"][gr["Interaction"][edge]] = 1
   print("edges OK")
+  
+  # outputs the results from the dictionary statistics into a CSV file
+  file_stats = open("results_statistics.csv","w")
+  for (type_of_element, number_of_element) in [(key+"_"+name, nb) for (key,item) in statistics.items() for (name,nb) in item.items()]:
+    file_stats.write(type_of_element+"\t"+str(number_of_element)+"\n")
+  file_stats.write("genes_TOTAL\t"+str(gr.numberOfNodes())+"\n"+"interactions_TOTAL\t"+str(gr.numberOfEdges())+"\n")
+  file_stats.close()
+  
+  # outputs the results from the dictionary genes_in_pathways into a CSV file
+  file_pathways = open("results_genes_in_pathways.csv","w")
+  for line in [[key]+values for (key,values) in genes_in_pathways.items()]:
+    file_pathways.write("\t".join(line)+"\n")
+  file_pathways.close()
+  
   return statistics, genes_in_pathways
 
 # The updateVisualization(centerViews = True) function can be called
@@ -194,7 +207,7 @@ def get_statistics(gr, viewLabel):
 # to run the script on the current gr
 
 def main(gr):
-    gr.clear()
+#    gr.clear()
     
     viewBorderColor = gr['viewBorderColor']
     viewBorderWidth = gr['viewBorderWidth']
@@ -220,33 +233,26 @@ def main(gr):
     viewTgtAnchorSize = gr['viewTgtAnchorSize']
     
     ###Functions to create the graph
-    dico_nodes=create_interaction_graph(gr,viewLabel)
-    add_expression(gr,dico_nodes)
-    second_degree_reg = set_secondary_regulators(gr,viewLabel)
-    updateVisualization(centerViews = True)
-    print("\nGraph constructed successfully")
+#    dico_nodes=create_interaction_graph(gr,viewLabel)
+#    add_expression(gr,dico_nodes)
+#    second_degree_reg = set_secondary_regulators(gr,viewLabel)
+#    updateVisualization(centerViews = True)
+#    print("\nGraph constructed successfully")
     
     ###Customization of the nodes and edge regarding their properties
-    visu_node_edge(gr,dico_nodes,viewSize,viewColor,viewBorderColor,viewBorderWidth)
-    print("\nCustomization done")
+#    visu_node_edge(gr,dico_nodes,viewSize,viewColor,viewBorderColor,viewBorderWidth)
+#    print("\nCustomization done")
 
     ###temporaire : applique automatique FM³
-    visu_algoFM(gr)
+#    visu_algoFM(gr)
     
     ###Creation of subgraphs for each pathway
 #    set_subgraphs_pathways(gr,viewLabel,dico_nodes)
 #    print("\nSubgraphs of pathways created")
+#    
+#    create_interest_subgraph(gr)
+#    print("\nInterest subgraph created")
     
-    create_interest_subgraph(gr)
-    print("\nInterest subgraph created")
-    
-#    statistics, genes_in_pathways = get_statistics(gr, viewLabel)
-#    print(statistics)
-#    print(genes_in_pathways)
-
-    
-#    for edge in gr.getEdges():
-#      labels = [viewLabel[n] for n in gr.ends(edge)]
-#      if "MCM3" in labels and ("IL17A" in labels or "EFHC1" in labels):
-#        viewColor[edge] = tlp.Color.Blue
-    
+    statistics, genes_in_pathways = get_statistics(gr, viewLabel)
+    print(statistics)
+    print(genes_in_pathways)   
