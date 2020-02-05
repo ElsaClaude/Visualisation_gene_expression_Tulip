@@ -93,7 +93,7 @@ def set_subgraphs_pathways(gr, viewLabel,data):
               edges_to_add.append(edge)
         currentSubgraph.addEdges(edges_to_add)
 
-def visu_node_edge(gr,dico_nodes,size,color,viewBorderColor,viewBorderWidth):
+def visu_node_edge(gr,size,color,viewBorderColor,viewBorderWidth):
     interaction = gr["Interaction"]
     expression = gr["Expression"]
     aspect = {"node" : {
@@ -240,11 +240,11 @@ def main(gr):
 #    print("\nGraph constructed successfully")
     
     ###Customization of the nodes and edge regarding their properties
-#    visu_node_edge(gr,dico_nodes,viewSize,viewColor,viewBorderColor,viewBorderWidth)
-#    print("\nCustomization done")
+    visu_node_edge(gr,viewSize,viewColor,viewBorderColor,viewBorderWidth)
+    print("\nCustomization done")
 
     ###temporaire : applique automatique FM³
-#    visu_algoFM(gr)
+    visu_algoFM(gr)
     
     ###Creation of subgraphs for each pathway
 #    set_subgraphs_pathways(gr,viewLabel,dico_nodes)
@@ -253,6 +253,4 @@ def main(gr):
 #    create_interest_subgraph(gr)
 #    print("\nInterest subgraph created")
     
-    statistics, genes_in_pathways = get_statistics(gr, viewLabel)
-    print(statistics)
-    print(genes_in_pathways)   
+#    statistics, genes_in_pathways = get_statistics(gr, viewLabel)
