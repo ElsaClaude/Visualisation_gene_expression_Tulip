@@ -132,9 +132,8 @@ def create_interest_subgraph(gr):
     interest.addNodes(nodes_to_add)
     allSubNodes = interest.nodes()
     for edge in gr.getEdges():
-        if gr["Interaction"][edge] in ["gain","loss","stable"]:
-            if gr.target(edge) in allSubNodes and gr.source(edge) in allSubNodes:
-                edges_to_add.append(edge)
+      if gr.target(edge) in allSubNodes and gr.source(edge) in allSubNodes:
+        edges_to_add.append(edge)
     interest.addEdges(edges_to_add)
 
 def set_secondary_regulators(gr,viewLabel):
@@ -250,7 +249,7 @@ def main(gr):
 #    set_subgraphs_pathways(gr,viewLabel,dico_nodes)
 #    print("\nSubgraphs of pathways created")
 #    
-#    create_interest_subgraph(gr)
-#    print("\nInterest subgraph created")
+    create_interest_subgraph(gr)
+    print("\nInterest subgraph created")
     
 #    statistics, genes_in_pathways = get_statistics(gr, viewLabel)
