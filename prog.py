@@ -18,7 +18,8 @@ import os
 ###### LES COMMENTAIRES : dire ce que fait la fonction, ce qu'elle prend en paramètre, ce qu'elle retourne
 
 #Amelie's path
-WD="/home/amelie/Documents/master/M2/DEA/Tulip/Visualisation_gene_expression_Tulip/"
+#WD="/home/amelie/Documents/master/M2/DEA/Tulip/Visualisation_gene_expression_Tulip/"
+WD="/autofs/unitytravail/travail/agruel/M2/DEA/tulip/Visualisation_gene_expression_Tulip/"
 
 #Elsa's path
 #WD=""
@@ -193,17 +194,18 @@ def get_statistics(gr, viewLabel):
   
   return statistics, genes_in_pathways
 
-def get_node_info(node_name,dico_nodes):
+def get_node_info(node_name,dico_nodes,viewLabel,gr):
   node = dico_nodes[node_name]
+  print(node)
   info = {
     "expression": gr["Expression"][node],
     "gain": [],
     "loss": [],
     "stable": []
   }
-  for neighbor_edge in node.getInOutEdges():
-    neighbor_node = [n for n in gr.ends(neighbor_edge) if n != neighbor_node][0]
-    info[gr["Interaction"][neighbor_edge]].append(neighbor_node) 
+  for neighbor_edge in gr.getInOutEdges(node):
+    neighbor_node = [n for n in gr.ends(neighbor_edge) if n != node][0]
+    info[gr["Interaction"][neighbor_edge]].append(viewLabel[neighbor_node]) 
   return info
   
   
@@ -239,6 +241,11 @@ def main(gr):
     
 #    statistics, genes_in_pathways = get_statistics(gr, viewLabel)
 
-    info_SNX9 = get_node_info("SNX9",dico_nodes)
-    for (key,values) in info_SNX9.items():
-      print(key,":",values)
+    info_SNX9 = get_node_info("SNX9",dico_nodes,viewLabel,gr)
+    info_SYNJ2 = get_node_info("SYNJ2",dico_nodes,viewLabel,gr)
+    
+    for info in [info_SNX9,info_SYNJ2]:
+        print("")    
+        for (key,values) in info.items():
+          print(key,":",values)
+        
