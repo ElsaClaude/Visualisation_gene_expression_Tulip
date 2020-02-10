@@ -193,50 +193,35 @@ def get_statistics(gr, viewLabel):
   
   return statistics, genes_in_pathways
 
-# The updateVisualization(centerViews = True) function can be called
-# during script execution to update the opened views
-# The pauseScript() function can be called to pause the script execution.
-# To resume the script execution, you will have to click on the
-# "Run script " button.
-# The rungrScript(scriptFile, gr) function can be called to launch
-# another edited script on a tlp.gr object.
-# The scriptFile parameter defines the script name to call
-# (in the form [a-zA-Z0-9_]+.py)
-# The main(gr) function must be defined
-# to run the script on the current gr
-
+def get_node_info(node_name,dico_nodes):
+  node = dico_nodes[node_name]
+  info = {
+    "expression": gr["Expression"][node],
+    "gain": [],
+    "loss": [],
+    "stable": []
+  }
+  for neighbor_edge in node.getInOutEdges():
+    neighbor_node = [n for n in gr.ends(neighbor_edge) if n != neighbor_node][0]
+    info[gr["Interaction"][neighbor_edge]].append(neighbor_node) 
+  return info
+  
+  
 def main(gr):
-#    gr.clear()
+    gr.clear()
     
     viewBorderColor = gr['viewBorderColor']
     viewBorderWidth = gr['viewBorderWidth']
     viewColor = gr['viewColor']
-    viewFont = gr['viewFont']
-    viewFontSize = gr['viewFontSize']
-    viewIcon = gr['viewIcon']
     viewLabel = gr['viewLabel']
-    viewLabelBorderColor = gr['viewLabelBorderColor']
-    viewLabelBorderWidth = gr['viewLabelBorderWidth']
-    viewLabelColor = gr['viewLabelColor']
-    viewLabelPosition = gr['viewLabelPosition']
-    viewLayout = gr['viewLayout']
-    viewMetric = gr['viewMetric']
-    viewRotation = gr['viewRotation']
-    viewSelection = gr['viewSelection']
-    viewShape = gr['viewShape']
     viewSize = gr['viewSize']
-    viewSrcAnchorShape = gr['viewSrcAnchorShape']
-    viewSrcAnchorSize = gr['viewSrcAnchorSize']
-    viewTexture = gr['viewTexture']
-    viewTgtAnchorShape = gr['viewTgtAnchorShape']
-    viewTgtAnchorSize = gr['viewTgtAnchorSize']
     
     ###Functions to create the graph
-#    dico_nodes=create_interaction_graph(gr,viewLabel)
-#    add_expression(gr,dico_nodes)
-#    second_degree_reg = set_secondary_regulators(gr,viewLabel)
-#    updateVisualization(centerViews = True)
-#    print("\nGraph constructed successfully")
+    dico_nodes=create_interaction_graph(gr,viewLabel)
+    add_expression(gr,dico_nodes)
+    second_degree_reg = set_secondary_regulators(gr,viewLabel)
+    updateVisualization(centerViews = True)
+    print("\nGraph constructed successfully")
     
     ###Customization of the nodes and edge regarding their properties
     visu_node_edge(gr,viewSize,viewColor,viewBorderColor,viewBorderWidth)
@@ -246,10 +231,14 @@ def main(gr):
     visu_algoFM(gr)
     
     ###Creation of subgraphs for each pathway
-#    set_subgraphs_pathways(gr,viewLabel,dico_nodes)
-#    print("\nSubgraphs of pathways created")
-#    
+    set_subgraphs_pathways(gr,viewLabel,dico_nodes)
+    print("\nSubgraphs of pathways created")
+    
     create_interest_subgraph(gr)
     print("\nInterest subgraph created")
     
 #    statistics, genes_in_pathways = get_statistics(gr, viewLabel)
+
+    info_SNX9 = get_node_info("SNX9",dico_nodes)
+    for (key,values) in info_SNX9.items():
+      print(key,":",values)
