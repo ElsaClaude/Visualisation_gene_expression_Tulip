@@ -196,7 +196,6 @@ def get_statistics(gr, viewLabel):
 
 def get_node_info(node_name,dico_nodes,viewLabel,gr):
   node = dico_nodes[node_name]
-  print(node)
   info = {
     "expression": gr["Expression"][node],
     "gain": [],
@@ -244,8 +243,8 @@ def main(gr):
     info_SNX9 = get_node_info("SNX9",dico_nodes,viewLabel,gr)
     info_SYNJ2 = get_node_info("SYNJ2",dico_nodes,viewLabel,gr)
     
-    for info in [info_SNX9,info_SYNJ2]:
-        print("")    
+    for (info,node_name) in [(info_SNX9, "SNX9"),(info_SYNJ2, "SYNJ2")]:
+        print("\n>",node_name,":") 
         for (key,values) in info.items():
-          print(key,":",values)
-        
+            if values != [] and key != "expression":
+                print(key,":",values)
