@@ -7,31 +7,13 @@ Salomé MIALON
 Février 2020
 """
 
-
 from tulip import tlp
 import pandas as pd
 import csv
 import os
 
-# Please put your path below
+# Please put your path below and uncomment the line
 #WD = "your path here"
-
-#Amelie's path
-#WD="/home/amelie/Documents/master/M2/DEA/Tulip/Visualisation_gene_expression_Tulip/"
-#WD="/autofs/unitytravail/travail/agruel/M2/DEA/tulip/Visualisation_gene_expression_Tulip/"
-
-#Elsa's path
-#WD=""
-
-#Salome's path
-#WD=""
-
-#Antoine's path
-#WD="/net/cremi/alaporte006/espaces/travail/DEA_Bourqui/Visualisation_gene_expression_Tulip/"
-WD="~/Dropbox/Master/M2S2/DEA/R_Bourqui/Visualisation_gene_expression_Tulip/"
-WDopen=os.getcwd()+"/../Dropbox/Master/M2S2/DEA/R_Bourqui/Visualisation_gene_expression_Tulip/"
-WDopenDos=os.getcwd()+"\\..\\..\\Users\\antoi\\Dropbox\\Master\\M2S2\\DEA\\R_Bourqui\\Visualisation_gene_expression_Tulip\\"
-
 
 def create_interaction_graph(gr,viewLabel):
   """
@@ -293,7 +275,7 @@ def main(gr):
   info_SNX9 = get_node_info("SNX9",dico_nodes,viewLabel,gr)
   info_SYNJ2 = get_node_info("SYNJ2",dico_nodes,viewLabel,gr)
   
-  ###Example of research and print on specific nodes (used in the project)
+  ###Example of research and print on specific nodes (used for the presentation)
   for (info,node_name) in [(info_SNX9, "SNX9"),(info_SYNJ2, "SYNJ2")]:
       print("\n>",node_name,":") 
       for (key,values) in info.items():
