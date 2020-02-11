@@ -1,25 +1,24 @@
-# Powered by Python 3.5
-# To cancel the modifications performed by the script
-# on the current gr, click on the undo button.
-# Some useful keyboard shortcuts:
-#   * Ctrl + D: comment selected lines.
-#   * Ctrl + Shift + D: uncomment selected lines.
-#   * Ctrl + I: indent selected lines.
-#   * Ctrl + Shift + I: unindent selected lines.
-#   * Ctrl + Return: run script.
-#   * Ctrl + F: find selected text.
-#   * Ctrl + R: replace selected text.
-#   * Ctrl + Space: show auto-completion dialog.
+"""
+Projet Tulip DEA - Analyses visuelles de données d'expression génique
+Elsa CLAUDE 
+Amélie GRUEL
+Antoine LAPORTE
+Salomé MIALON
+Février 2020
+"""
+
+
 from tulip import tlp
 import pandas as pd
 import csv
 import os
 
-###### LES COMMENTAIRES : dire ce que fait la fonction, ce qu'elle prend en paramètre, ce qu'elle retourne
+# Please put your path below
+#WD = "your path here"
 
 #Amelie's path
 #WD="/home/amelie/Documents/master/M2/DEA/Tulip/Visualisation_gene_expression_Tulip/"
-WD="/autofs/unitytravail/travail/agruel/M2/DEA/tulip/Visualisation_gene_expression_Tulip/"
+#WD="/autofs/unitytravail/travail/agruel/M2/DEA/tulip/Visualisation_gene_expression_Tulip/"
 
 #Elsa's path
 #WD=""
@@ -29,14 +28,19 @@ WD="/autofs/unitytravail/travail/agruel/M2/DEA/tulip/Visualisation_gene_expressi
 
 #Antoine's path
 #WD="/net/cremi/alaporte006/espaces/travail/DEA_Bourqui/Visualisation_gene_expression_Tulip/"
-#WD="~/Dropbox/Master/M2S2/DEA/R_Bourqui/Visualisation_gene_expression_Tulip/"
-#WDopen=os.getcwd()+"/../Dropbox/Master/M2S2/DEA/R_Bourqui/Visualisation_gene_expression_Tulip/"
-#WDopenDos=os.getcwd()+"\\..\\..\\Users\\antoi\\Dropbox\\Master\\M2S2\\DEA\\R_Bourqui\\Visualisation_gene_expression_Tulip\\"
+WD="~/Dropbox/Master/M2S2/DEA/R_Bourqui/Visualisation_gene_expression_Tulip/"
+WDopen=os.getcwd()+"/../Dropbox/Master/M2S2/DEA/R_Bourqui/Visualisation_gene_expression_Tulip/"
+WDopenDos=os.getcwd()+"\\..\\..\\Users\\antoi\\Dropbox\\Master\\M2S2\\DEA\\R_Bourqui\\Visualisation_gene_expression_Tulip\\"
 
 
 def create_interaction_graph(gr,viewLabel):
+  """
+  Input : The graph and the viewLabel property
+  Function : Create the main graph from interaction_chromosome6.csv and a dictionary of nodes
+  Output : a dictionary containing the ID of the node as key and the node as value
+  """
     data = pd.read_csv(WD+"interactions_chromosome6.csv",sep="\t",header=0)
-    print("\nInteraction graph being constructed")
+    print("\nInteraction graph in construction")
     nodes_dict = {}
     for i in range(len(data["ID_locus1"])):
         if data["ID_locus1"][i] not in nodes_dict.keys():
@@ -52,6 +56,11 @@ def create_interaction_graph(gr,viewLabel):
     return nodes_dict
 
 def add_expression(gr,dico_nodes):
+  """
+  Input : The graph and the dictionary of nodes
+  Function : Add expression property to the nodes from chromosome6_fragments_expressions.csv
+  Output : NONE
+  """
     data = pd.read_csv(WD+"chromosome6_fragments_expressions.csv", sep="\t", header=0)
     print("\nAdding expression to graph")
     for i in range(len(data["IDs"])):
@@ -59,6 +68,11 @@ def add_expression(gr,dico_nodes):
             gr.setNodePropertiesValues(dico_nodes[data["IDs"][i]],{"Expression":str(data["expression"][i])})
 
 def visu_algoFM(gr):
+  """
+  Input : The graph 
+  Function : Apply the FM3 algorithm to the graph
+  Output : NONE
+  """
     params = tlp.getDefaultPluginParameters("FM^3 (OGDF)",gr)
     params["Unit Edge Length"] = gr["Distance"]
     gr.applyLayoutAlgorithm("FM^3 (OGDF)", params)
@@ -67,16 +81,26 @@ def visu_algoFM(gr):
     gr.applyLayoutAlgorithm('Perfect aspect ratio', params)
 
 def read_symbols_csv(files_symbols):
+  """
+  Input : A list of *.symbols.csv
+  Function : Create a dictionary with name of the pathway as key and the list of genes present in the pathway as value. The information is provided by the *.symbols.csv 
+  Output : The dictionary of pathways
+  """
     dico = {}
     for file in files_symbols:
-      f = open(WD+file,"r")
+      f = open(WDopen+file,"r")
       for line in f.readlines():
           line = line.split('\t')
           dico[line[0]]=line[2:]
       f.close()
     return dico
 
-def set_subgraphs_pathways(gr, viewLabel,data):
+def set_subgraphs_pathways(gr, viewLabel, data):
+  """
+  Input : The graph, the viewLabel property and the dictionary of nodes
+  Function : Create a subgraph for each pathway in the dictionary of pathways (provided by the read_symbols_csv() function)
+  Output : NONE
+  """
     print("\nCreation of subgraph for each pathway")
     voies_metabo = read_symbols_csv(["KEGG.symbols.csv","REACTOME.symbols.csv"])
     for (name, genes) in voies_metabo.items():
@@ -95,6 +119,11 @@ def set_subgraphs_pathways(gr, viewLabel,data):
         currentSubgraph.addEdges(edges_to_add)
 
 def visu_node_edge(gr,size,color,viewBorderColor,viewBorderWidth):
+  """
+  Input : The graph, the viewSize, the viewColor property, the viewBorderColor and the viewBorderWidth properties
+  Function : 
+  Output :
+  """
     interaction = gr["Interaction"]
     expression = gr["Expression"]
     aspect = {"node" : {
@@ -155,8 +184,8 @@ def get_statistics(gr, viewLabel):
   pathways_from_files = read_symbols_csv(["KEGG.symbols.csv", "REACTOME.symbols.csv"])
   genes_in_pathways_from_file = list(set(sum(list(pathways_from_files.values()), [])))
   print("read csv OK")
-  i = 1
   
+  i = 1
   for node in gr.getNodes(): 
     if gr["Expression"][node] in statistics["genes"].keys():
       statistics["genes"][gr["Expression"][node]] += 1
@@ -168,7 +197,8 @@ def get_statistics(gr, viewLabel):
       for (pathway, genes) in pathways_from_files.items():
         if viewLabel[node] in genes :
           genes_in_pathways[viewLabel[node]].append(pathway)
-    print(i, gr.numberOfNodes())
+    if i%500==0:
+      print("Progression : ", i," out of ", gr.numberOfNodes())
     i+=1
     
   print("nodes OK")
@@ -217,32 +247,31 @@ def main(gr):
     viewLabel = gr['viewLabel']
     viewSize = gr['viewSize']
     
-    ###Functions to create the graph
+    ###Functions to create the graphs
     dico_nodes=create_interaction_graph(gr,viewLabel)
     add_expression(gr,dico_nodes)
     second_degree_reg = set_secondary_regulators(gr,viewLabel)
     updateVisualization(centerViews = True)
-    print("\nGraph constructed successfully")
+    create_interest_subgraph(gr)
+    print("\nGraphs constructed successfully")
     
-    ###Customization of the nodes and edge regarding their properties
+    ###Customization of the nodes and edges regarding their properties
     visu_node_edge(gr,viewSize,viewColor,viewBorderColor,viewBorderWidth)
     print("\nCustomization done")
 
-    ###temporaire : applique automatique FM³
+    ###Applying the FM3 algorithm on the main graph
     visu_algoFM(gr)
     
     ###Creation of subgraphs for each pathway
     set_subgraphs_pathways(gr,viewLabel,dico_nodes)
     print("\nSubgraphs of pathways created")
     
-    create_interest_subgraph(gr)
-    print("\nInterest subgraph created")
-    
-#    statistics, genes_in_pathways = get_statistics(gr, viewLabel)
-
+    ###Get information on the main graph and on specific nodes
+    statistics, genes_in_pathways = get_statistics(gr, viewLabel)
     info_SNX9 = get_node_info("SNX9",dico_nodes,viewLabel,gr)
     info_SYNJ2 = get_node_info("SYNJ2",dico_nodes,viewLabel,gr)
     
+    ###Example of research and print on specific nodes (used in the project)
     for (info,node_name) in [(info_SNX9, "SNX9"),(info_SYNJ2, "SYNJ2")]:
         print("\n>",node_name,":") 
         for (key,values) in info.items():
